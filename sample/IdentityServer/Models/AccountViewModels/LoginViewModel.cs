@@ -1,22 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace IdentityServer.Models.AccountViewModels
+﻿namespace IdentityServer.Models.AccountViewModels
 {
-    public class LoginViewModel
+    public class LoginViewModel : LoginInputModel
     {
-        [Required]
-        [EmailAddress]
-        public string Email { get; set; }
+        public LoginViewModel()
+        {
+        }
 
-        [Required]
-        [DataType(DataType.Password)]
-        public string Password { get; set; }
+        public LoginViewModel(LoginInputModel other)
+        {
+            Email = other.Email;
+            Password = other.Password;
+            RememberMe = other.RememberMe;
+            SignInId = other.SignInId;
+        }
 
-        [Display(Name = "Remember me?")]
-        public bool RememberMe { get; set; }
+        public string ErrorMessage { get; set; }
     }
 }

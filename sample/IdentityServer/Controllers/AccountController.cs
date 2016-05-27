@@ -11,6 +11,8 @@ using Microsoft.Extensions.Logging;
 using IdentityServer.Models;
 using IdentityServer.Models.AccountViewModels;
 using IdentityServer.Services;
+using IdentityServer4.Core.Services;
+using SignInResult = IdentityServer.Models.AccountViewModels.SignInResult;
 
 namespace IdentityServer.Controllers
 {
@@ -19,6 +21,7 @@ namespace IdentityServer.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly SignInInteraction _signInInteraction;
         private readonly IEmailSender _emailSender;
         private readonly ISmsSender _smsSender;
         private readonly ILogger _logger;
@@ -26,12 +29,14 @@ namespace IdentityServer.Controllers
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
+            SignInInteraction signInInteraction,
             IEmailSender emailSender,
             ISmsSender smsSender,
             ILoggerFactory loggerFactory)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _signInInteraction = signInInteraction;
             _emailSender = emailSender;
             _smsSender = smsSender;
             _logger = loggerFactory.CreateLogger<AccountController>();
@@ -41,10 +46,21 @@ namespace IdentityServer.Controllers
         // GET: /Account/Login
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult Login(string returnUrl = null)
+        public async Task<IActionResult> Login(string id = null, string returnUrl = null)
         {
+            var model = new LoginViewModel();
+            if (id != null)
+            {
+                var request = await _signInInteraction.GetRequestAsync(id);
+                if (request != null)
+                {
+                    model.Email = request.LoginHint;
+                    model.SignInId = id;
+                }
+            }
+
             ViewData["ReturnUrl"] = returnUrl;
-            return View();
+            return View(model);
         }
 
         //
@@ -52,7 +68,7 @@ namespace IdentityServer.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
+        public async Task<IActionResult> Login(LoginInputModel model, string returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
@@ -63,7 +79,9 @@ namespace IdentityServer.Controllers
                 if (result.Succeeded)
                 {
                     _logger.LogInformation(1, "User logged in.");
-                    return RedirectToLocal(returnUrl);
+                    return model.SignInId != null
+                        ? new SignInResult(model.SignInId)
+                        : RedirectToLocal(returnUrl);
                 }
                 if (result.RequiresTwoFactor)
                 {
@@ -77,12 +95,12 @@ namespace IdentityServer.Controllers
                 else
                 {
                     ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-                    return View(model);
+                    return View(new LoginViewModel(model));
                 }
             }
 
             // If we got this far, something failed, redisplay form
-            return View(model);
+            return View(new LoginViewModel(model));
         }
 
         //

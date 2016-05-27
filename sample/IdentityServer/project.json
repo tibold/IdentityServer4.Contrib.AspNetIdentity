@@ -1,5 +1,5 @@
-﻿{
-  "userSecretsId": "aspnet-IdentityServer-422cbaa0-d94b-4372-b2b6-135ed7d363a6",
+{
+  "userSecretsId": "aspnet-IdentityServer-db76f1cf-15a8-4dc0-8200-221a224b454c",
 
   "dependencies": {
     "Microsoft.NETCore.App": {
@@ -35,9 +35,10 @@
       "type": "build"
     },
     "Microsoft.VisualStudio.Web.CodeGenerators.Mvc": {
-      "version": "1.0.0-preview1-final",
-      "type": "build"
-    }
+        "version": "1.0.0-preview1-final",
+        "type": "build"
+    },
+    "IdentityServer4.Contrib.AspNetIdentity": "1.0.0-*"
   },
 
   "tools": {

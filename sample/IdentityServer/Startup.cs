@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using IdentityServer.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -10,8 +13,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using IdentityServer.Data;
+using IdentityServer.Extensions;
 using IdentityServer.Models;
 using IdentityServer.Services;
+using Microsoft.Extensions.PlatformAbstractions;
+using IdentityServer4.Contrib.AspNetIdentity;
+using IdentityServer4.Core;
 
 namespace IdentityServer
 {
@@ -32,8 +39,10 @@ namespace IdentityServer
 
             builder.AddEnvironmentVariables();
             Configuration = builder.Build();
+            Environement = env;
         }
 
+        public IHostingEnvironment Environement { get; }
         public IConfigurationRoot Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -46,6 +55,19 @@ namespace IdentityServer
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
+            
+            var cert = new X509Certificate2(Path.Combine(Environement.ContentRootPath, "idsrvtest.pfx"), "idsrv3test");
+
+            services.AddIdentityServer(options =>
+            {
+                options.SigningCertificate = cert;
+                // Not implemented yet in IdentityServer4
+                options.Endpoints.EnableEndSessionEndpoint = false;
+            })
+                .AddInMemoryClients(Clients.Get())
+                .AddInMemoryScopes(Scopes.Get())
+                .ConfigureAspNetIdentity<ApplicationUser>()
+                .AddCustomGrantValidator<CustomGrantValidator>();
 
             services.AddMvc();
 
@@ -74,11 +96,18 @@ namespace IdentityServer
             app.UseStaticFiles();
 
             app.UseIdentity();
+            app.UseIdentityServer();
 
             // Add external authentication middleware below. To configure them please see http://go.microsoft.com/fwlink/?LinkID=532715
 
             app.UseMvc(routes =>
             {
+
+                routes.MapRoute("Login", Constants.RoutePaths.Login,
+                    new { controller = "Account", action = "Login" });
+                routes.MapRoute("Logout", Constants.RoutePaths.Logout,
+                    new { controller = "Account", action = "LogOff" });
+
                 routes.MapRoute(
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
