@@ -58,7 +58,12 @@ namespace MVC
                 ClientSecret = "secret",
                 ResponseType = "code id_token",
                 GetClaimsFromUserInfoEndpoint = true,
-                SaveTokens = true
+                SaveTokens = true,
+                TokenValidationParameters =
+                {
+                    NameClaimType = "name",
+                    RoleClaimType = "role"
+                }
             };
 
             oidcOptions.Scope.Clear();
