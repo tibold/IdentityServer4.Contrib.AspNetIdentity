@@ -11,6 +11,7 @@ namespace IdentityServer.Configuration
             {
                 StandardScopes.OpenId,
                 StandardScopes.Profile,
+                StandardScopes.Roles,
 
                 new Scope
                 {

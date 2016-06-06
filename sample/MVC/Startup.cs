@@ -69,6 +69,7 @@ namespace MVC
             oidcOptions.Scope.Clear();
             oidcOptions.Scope.Add("openid");
             oidcOptions.Scope.Add("profile");
+            oidcOptions.Scope.Add("roles");
             oidcOptions.Scope.Add("api1");
 
             app.UseOpenIdConnectAuthentication(oidcOptions);

@@ -34,6 +34,7 @@ namespace IdentityServer.Configuration
                     {
                         StandardScopes.OpenId.Name,
                         StandardScopes.Profile.Name,
+                        StandardScopes.Roles.Name,
                         "api1"
                     }
                 }
